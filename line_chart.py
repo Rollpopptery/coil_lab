@@ -3,7 +3,7 @@
 # wombatpi.net
 # Coil pulse plotting on a line chart
 #
-# Modified 17-Oct-2024
+# Modified 27-Oct-2024
 #
 #
 
@@ -57,6 +57,6 @@ def update_plot(n):
     return fig
 
 if __name__ == '__main__':
-    read_wombat.runSerial()
+    read_wombat.runSerial(read_wombat.MODE.SCAN_1USEC)
     app.run_server()
 

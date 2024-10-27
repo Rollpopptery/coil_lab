@@ -4,7 +4,7 @@
 # Interface to wombat pi
 # (running diagnostics application on the arduino)
 #
-# Modified 17-Oct-2024
+# Modified 27-Oct-2024
 #
 #
 import serial
@@ -15,6 +15,11 @@ BAUDRATE = 115200
 SERIAL_PORT = 'COM9'
 
 dataList = []
+
+
+class MODE:
+    SCAN_1USEC = "MT\r"
+    SCAN_3USEC = "MU\r"
 
 class SerialInterface:
     def __init__(self, port, baudrate=115200, timeout=1):
@@ -108,7 +113,9 @@ data_lock = threading.Lock()
 def poll(si):
     global dataList
 
-    while not si.stop_polling:
+    while(True):
+        time.sleep(0.1)
+
         try:
             if si.ser.in_waiting > 0:
                 time.sleep(0.05)
@@ -117,24 +124,27 @@ def poll(si):
 
                 with data_lock:
                     dataList = parse_line_csv(response)
+
                 print("read : " + str(len(dataList)))
 
-            timer = threading.Timer(0.2, poll, args=(si,))  # 0.5 second interval
-            timer.start()
-            break  # Exit loop after scheduling next poll
+
         except serial.SerialException as e:
             print(f"Error polling: {e}")
             si.disconnect()
             break
 
 
-def runSerial():
+
+def runSerial(mode):
     si = SerialInterface(SERIAL_PORT)
     si.connect()
-    si.send_command("MT\r")
-    poll(si)
+    si.send_command(mode)
+
+    thread = threading.Thread(target=poll, args=(si,))
+    thread.start()
+
 
 # Example usage:
 if __name__ == "__main__":
-    runSerial()
+    runSerial(MODE.SCAN_3USEC)
 
