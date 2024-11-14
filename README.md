@@ -13,6 +13,8 @@ This charts the raw analog scan, a difference scan, and the shape (normalised' s
 ### Buttons:
 
 Take Reference:   The latest Raw signal scan becomes the stored Reference signal
+
 Grab Plot :       Capture the difference scan, Normalise (between 0 and 1) and add to the Lower Chart Window
+
 Clear Plot:       Clear the Lower Chart Window
 
