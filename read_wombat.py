@@ -4,7 +4,7 @@
 # Interface to wombat pi
 # (running diagnostics application on the arduino)
 #
-# Modified 27-Oct-2024
+# Modified 29-Oct-2024
 #
 #
 import serial
@@ -16,6 +16,7 @@ SERIAL_PORT = 'COM9'
 
 dataList = []
 
+RUNNING = True
 
 class MODE:
     SCAN_1USEC = "MT\r"
@@ -29,14 +30,14 @@ class SerialInterface:
         self.ser = serial.Serial()
         self.stop_polling = False
 
-    def connect(self):
+    def _connect(self):
         try:
             self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
             print(f"Connected to {self.port}")
         except serial.SerialException as e:
             print(f"Error connecting: {e}")
 
-    def disconnect(self):
+    def _disconnect(self):
         self.stop_polling = True
         self.ser.close()
         print(f"Disconnected from {self.port}")
@@ -60,7 +61,7 @@ class SerialInterface:
 
 # the data is a line of comma delimited values
 #
-def parse_line_csv(line_text):
+def _parse_line_csv(line_text):
     """
     Convert received line text into a list of numbers.
 
@@ -86,7 +87,7 @@ def parse_line_csv(line_text):
     return num_list
 
 
-def parse_line_text(line_text):
+def _parse_line_text(line_text):
     """
     Convert received line text into a list of numbers.
 
@@ -110,10 +111,11 @@ def parse_line_text(line_text):
 
 data_lock = threading.Lock()
 
-def poll(si):
+def _poll(si):
     global dataList
+    global RUNNING
 
-    while(True):
+    while(RUNNING):
         time.sleep(0.1)
 
         try:
@@ -123,25 +125,41 @@ def poll(si):
                 #print(response)
 
                 with data_lock:
-                    dataList = parse_line_csv(response)
+                    dataList = _parse_line_csv(response)
 
-                print("read : " + str(len(dataList)))
+                #print("read : " + str(len(dataList)))
 
 
         except serial.SerialException as e:
             print(f"Error polling: {e}")
-            si.disconnect()
             break
+
+    print("Serial port closed")
+
+    # finished / stopped
+    si._disconnect()
+
+
+# called from external module/application
+def getData():
+    with data_lock:
+        return dataList.copy()
 
 
 
 def runSerial(mode):
     si = SerialInterface(SERIAL_PORT)
-    si.connect()
+    si._connect()
     si.send_command(mode)
 
-    thread = threading.Thread(target=poll, args=(si,))
+    thread = threading.Thread(target=_poll, args=(si,))
     thread.start()
+
+# To finsih the polling task and close the serial port
+def close():
+    global RUNNING
+    RUNNING = False
+
 
 
 # Example usage:
