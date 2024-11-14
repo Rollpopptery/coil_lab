@@ -1,6 +1,6 @@
 # plot_3_usec.py
 
-With the wombatPi running coilscan.ino
+With the wombatPi running coilscan.ino,
 This charts the raw analog scan, a difference scan, and the shape ('normalised' scan)
 
 ### Set the com port in read_wombat.py
