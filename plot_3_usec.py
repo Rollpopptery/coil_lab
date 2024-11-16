@@ -8,9 +8,7 @@
 #
 #
 #
-#
-#
-# Modified 14-Nov-2024
+# Modified 16-Nov-2024
 #
 #
 #
@@ -30,7 +28,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout,
 import read_wombat
 
 
-WINDOW_TITLE = "Wombat plot_3_usec.py   Version 1"
+WINDOW_TITLE = "Wombat plot_3_usec.py   Version 1.2"
 EXPECTED_DATA_SIZE = 50
 
 
@@ -189,6 +187,27 @@ class PlotWindow(QMainWindow):
 
         #print(arr_normalized)
         self.plot3.plot(self.x, arr_normalized)
+
+        # try a curve fit
+        import curve_fit
+
+        peakIndex = np.argmax(arr_normalized)
+        curve_fit.y_dataSetIn = arr_normalized
+        curve_fit.y_dataSetIn = curve_fit.y_dataSetIn[peakIndex:]
+        curve_fit.test()
+        self.plot3.plot(self.x[peakIndex:], curve_fit.y_curveFitOut, pen='forestgreen')
+
+        # put the curve slope 'tau' on the chart
+
+        # The Tau is in samples, but each sample is 3uSec, so multiply by 3
+        # The Tau is the time it takes to decay to around 37% of peak
+
+        textTau = str(int(curve_fit.tauValue * 3))
+        title = "Normalised (Curve T: " + textTau + ")"
+        self.plot3.setTitle(title)
+        self.text.setPos(1, 20)
+
+
 
 
 if __name__ == "__main__":
